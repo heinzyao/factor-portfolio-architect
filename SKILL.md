@@ -7,6 +7,8 @@ description: Build and stress-test multi-factor ETF portfolios under hard constr
 
 Design constraint-bound multi-factor portfolios and evaluate changes to them, with honest separation between genuine risk-adjusted improvements and directional macro bets.
 
+Repo and bilingual overview: <https://github.com/heinzyao/factor-portfolio-architect#readme>
+
 ## Two modes
 
 Read the request and pick the mode. Most conversations start in Mode A and then live in Mode B for many turns — the follow-up questions are usually where the real value is, so don't treat them as afterthoughts.
