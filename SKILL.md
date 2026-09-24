@@ -107,4 +107,6 @@ Include a brief note that this is educational analysis rather than personalized 
 
 ## Validation script
 
-Run `python scripts/check_constraints.py <portfolios.json>` to verify every portfolio against the hard constraints. It checks ticker count, weight sum, weight granularity, one-per-class rules, factor diversity, and benchmark exclusion. Write the portfolio set to JSON as you design it and validate before presenting — catching a violation in the draft is free, catching it after presenting is not. The script prints a per-portfolio pass/fail table; see the docstring for the input schema.
+Run `python scripts/check_constraints.py <portfolios.json>` to verify every portfolio against the hard constraints. It checks ticker count, weight sum, weight granularity, non-positive weights, universe membership, one-per-class rules, factor diversity, and benchmark exclusion. Write the portfolio set to JSON as you design it and validate before presenting — catching a violation in the draft is free, catching it after presenting is not. The script prints a per-portfolio pass/fail table; see the docstring for the input schema.
+
+One-per-class and factor-diversity degrade to *skipped* when the JSON omits the `classes` / `factors` maps, so supply both whenever those constraints are in play. The script says `passed the checks that ran` rather than `passed all checks` when anything was skipped, and lists the skipped checks above that line — read the verdict wording, not just the PASS rows.

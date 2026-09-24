@@ -211,12 +211,18 @@ def main():
 
     print("\n".join(lines))
     print()
-    print(f"{n_pass}/{len(portfolios)} portfolios passed all checks.")
 
+    # Skipped checks go ABOVE the verdict on purpose. Anyone who reads the
+    # bottom line and stops there must not be able to mistake a partial run
+    # for a complete one — and the verdict itself says which it was.
     if all_skipped:
-        print("\nSkipped checks (missing supporting data):")
+        print("Skipped checks (missing supporting data):")
         for s in sorted(all_skipped):
             print(f"  - {s}")
+        print()
+
+    scope = "the checks that ran" if all_skipped else "all checks"
+    print(f"{n_pass}/{len(portfolios)} portfolios passed {scope}.")
 
     sys.exit(0 if n_pass == len(portfolios) else 1)
 
