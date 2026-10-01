@@ -2,6 +2,18 @@
 
 Each theory is written with its **dependency** stated — the condition it needs to work. Dependencies are what let you evaluate a proposed change: a modification is good or bad largely according to whether it strengthens or undermines the mechanism the portfolio relies on.
 
+## Modern portfolio theory (Markowitz)
+
+Choose weights by expected return, volatility and the covariance matrix; the efficient frontier is the set of maximum-return portfolios per unit of variance, and the tangency portfolio maximizes Sharpe.
+
+Practical points:
+
+- **Use it as the baseline and the cross-check**, not the designer. Unconstrained mean-variance weights are notoriously error-maximizing — small changes in expected-return inputs swing weights wildly. Run it to see where a hand-built portfolio sits relative to the frontier, then explain the gap.
+- **Its real contribution is the covariance term.** Diversification value comes from correlation, which is the same lever Shannon's Demon and risk parity pull. MPT just prices it in variance units.
+- **Variance is symmetric**, so MPT penalizes upside the same as downside. When the user's key metrics are downside measures (Sortino, Martin, Sterling), MPT-optimal and metric-optimal portfolios will differ — `references/pmpt.md` covers the downside-aware optimizers.
+
+**Dependency:** stable covariances and normal-ish returns. Both fail in crises, when correlations converge to one — exactly when diversification is needed. Flag any design whose case rests on full-sample correlations.
+
 ## Fama-French factors (+ momentum)
 
 Expected returns load on market, size, value, profitability, and investment, with momentum as a well-documented addition outside the original model.

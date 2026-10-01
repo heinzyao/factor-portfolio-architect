@@ -1,6 +1,6 @@
 ---
 name: factor-portfolio-architect
-description: Build and stress-test multi-factor ETF portfolios under hard construction constraints, using Fama-French factors, Shannon's Demon volatility harvesting, Taleb's barbell, and risk parity / All-Weather. Produces constraint-checked portfolio sets, ranked recommendations, drawdown-focused and post-modern metrics (Martin, Sterling, Treynor, Omega, Sortino, CVaR), 30-year historical regime backtests via index proxies, and forward scenario simulations. Also evaluates proposed changes to an existing portfolio — ticker swaps, weight shifts, duration or metals choices. Use this skill whenever the user asks to design, compare, rank, backtest, or modify an investment portfolio of tickers or ETFs, mentions factor investing, risk parity, volatility harvesting, barbell strategies, rebalancing bonuses, downside risk or post-modern portfolio theory, or asks "is portfolio A better than B" / "should I swap X for Y" / "what if I change this weight" — even if they don't name any of these theories explicitly.
+description: Build and stress-test multi-factor ETF portfolios under hard construction constraints, using Fama-French factors, Shannon's Demon volatility harvesting, Taleb's barbell, risk parity / All-Weather, and modern portfolio theory. Produces constraint-checked portfolio sets, ranked recommendations, drawdown-focused and post-modern metrics (Martin, Sterling, Treynor, Omega, Sortino, CVaR), 30-year historical regime backtests via index proxies, and forward scenario simulations. Also evaluates proposed changes to an existing portfolio — ticker swaps, weight shifts, duration or metals choices. Use this skill whenever the user asks to design, compare, rank, backtest, or modify an investment portfolio of tickers or ETFs, mentions factor investing, MPT / efficient frontier, risk parity, volatility harvesting, barbell strategies, rebalancing bonuses, downside risk or post-modern portfolio theory, or asks "is portfolio A better than B" / "should I swap X for Y" / "what if I change this weight" — even if they don't name any of these theories explicitly.
 ---
 
 # Factor Portfolio Architect
@@ -33,6 +33,10 @@ Three habits separate a useful answer from a plausible-sounding one:
 
 Extract every hard constraint before designing anything. Typical ones: max ticker count, exactly-one-per-asset-class rules, weight granularity (multiples of 5), minimum distinct factors, excluded benchmark, horizon, risk tolerance, rebalancing frequency. Write them down and validate against them mechanically — see `scripts/check_constraints.py`. A beautiful portfolio that violates a stated rule is a failed answer, and constraint violations are embarrassing precisely because they're checkable.
 
+Resolve ambiguous wording once, state the reading in the output, and encode it in the JSON:
+- "For each asset, select one ticker" — strict reading: every portfolio holds exactly one ticker from *every* listed class (put all classes in `one_per_class`). If the class count equals the ticker cap, this fixes every portfolio at that count, and distinctness must come from ticker choice and weights. Take the strict reading by default; it's the one that can't be accused of dodging the rule.
+- "Don't apply pure single momentum or value factor in stock assets" — the equity sleeve as a whole must not be all-momentum or all-value. Union-based factor counts miss this (SPMO+XSMO+IDMO spans momentum *and* size), so use `no_pure_factor`. Tag dual-factor funds honestly — XSVM carries both value and momentum.
+
 ### 2. Research the current state
 
 Portfolio design is macro-contingent, so gather before building:
@@ -44,11 +48,11 @@ Portfolio design is macro-contingent, so gather before building:
 
 When asked for N portfolios, make them genuinely distinct in *character*, not N variations on one idea. Span the range from aggressive growth/momentum through balanced factor barbells to defensive risk-parity designs. Vary the within-class choices (which Treasury duration, which metals vehicle) and have a reason for each — the reason is the interesting part.
 
-Give each portfolio a name and an explicit theory tag so the user can reason about the set.
+Give each portfolio a name and an explicit theory tag so the user can reason about the set. When the user favors hybrids, tag as *theory × target scenario* (e.g. "Risk parity × stagflation hedge") and name the primary mechanism — see Hybrids in `references/theories.md`.
 
 ### 4. Rank and justify the top few
 
-For each top pick, cover: why these tickers, why these weights, how the theories combine, which macro scenarios it's built for, and how the rebalancing frequency interacts with the design's mechanism. Rank order should reflect the user's stated risk tolerance, not the highest expected return. Estimated metrics should include the downside set — see `references/pmpt.md` for MAR choice, Sortino, UPR and CVaR, and for when an optimizer cross-check is worth running against a hand-built design.
+For each top pick, cover: why these tickers, why these weights, how the theories combine, which macro scenarios it's built for, and how the rebalancing frequency interacts with the design's mechanism. Rank order should reflect the user's stated risk tolerance, not the highest expected return. When the user names key metrics (e.g. Sortino, Sterling, Martin), those are the ranking criteria and the headline columns in every metrics table, with the benchmark as a reference row; other metrics are supporting detail. If the named metrics disagree on the order, say which one broke the tie and why. Estimated metrics should include the downside set — see `references/pmpt.md` for MAR choice, Sortino, UPR and CVaR, and for when an optimizer cross-check is worth running against a hand-built design.
 
 ### 5. Historical regimes and forward scenarios
 
@@ -100,13 +104,13 @@ Include a brief note that this is educational analysis rather than personalized 
 ## Reference files
 
 - `references/metrics.md` — Martin, Sterling, Treynor, Omega: formulas, what each captures, how to estimate them from proxies and how to present them honestly.
-- `references/theories.md` — Fama-French factors, Shannon's Demon / volatility harvesting, Taleb barbell, risk parity / All-Weather. Includes what conditions each strategy depends on, which is what makes change-evaluation possible.
+- `references/theories.md` — modern portfolio theory, Fama-French factors, Shannon's Demon / volatility harvesting, Taleb barbell, risk parity / All-Weather. Includes what conditions each strategy depends on, which is what makes change-evaluation possible.
 - `references/regimes.md` — the 30-year regime set, long-history proxies for short-lived ETFs, and guidance on building the regime table.
 - `references/pmpt.md` — post-modern portfolio theory: downside deviation and MAR selection, Sortino and Upside Potential Ratio, skew/kurtosis, Cornish-Fisher modified VaR and CVaR, and the robust optimizers (mean-semivariance, CVaR-LP, resampling, shrinkage, HRP) with guidance on when they're worth running.
 - `references/scenarios.md` — forward scenario framework, probability weighting, and how to keep scenario returns internally consistent.
 
 ## Validation script
 
-Run `python scripts/check_constraints.py <portfolios.json>` to verify every portfolio against the hard constraints. It checks ticker count, weight sum, weight granularity, non-positive weights, universe membership, one-per-class rules, factor diversity, and benchmark exclusion. Write the portfolio set to JSON as you design it and validate before presenting — catching a violation in the draft is free, catching it after presenting is not. The script prints a per-portfolio pass/fail table; see the docstring for the input schema.
+Run `python scripts/check_constraints.py <portfolios.json>` to verify every portfolio against the hard constraints. It checks ticker count, weight sum, weight granularity, non-positive weights, universe membership, one-per-class rules, factor diversity, pure single-factor equity sleeves (`no_pure_factor`), and benchmark exclusion. `--selftest` runs its built-in check. Write the portfolio set to JSON as you design it and validate before presenting — catching a violation in the draft is free, catching it after presenting is not. The script prints a per-portfolio pass/fail table; see the docstring for the input schema.
 
-One-per-class and factor-diversity degrade to *skipped* when the JSON omits the `classes` / `factors` maps, so supply both whenever those constraints are in play. The script says `passed the checks that ran` rather than `passed all checks` when anything was skipped, and lists the skipped checks above that line — read the verdict wording, not just the PASS rows.
+One-per-class, factor-diversity and `no_pure_factor` degrade to *skipped* when the JSON omits the `classes` / `factors` maps, so supply both whenever those constraints are in play. The script says `passed the checks that ran` rather than `passed all checks` when anything was skipped, and lists the skipped checks above that line — read the verdict wording, not just the PASS rows.

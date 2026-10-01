@@ -6,6 +6,7 @@ Constraint violations are cheap to catch here and expensive to catch after
 presenting, so run this on the draft before writing anything up.
 
 Usage:
+    python check_constraints.py --selftest
     python check_constraints.py portfolios.json
     python check_constraints.py portfolios.json --quiet   # only show failures
 
@@ -16,6 +17,7 @@ Input schema (JSON):
     "weight_multiple": 5,
     "weight_sum": 100,
     "min_distinct_factors": 2,
+    "no_pure_factor": ["momentum", "value"],
     "excluded_tickers": ["VT"],
     "one_per_class": ["treasury", "metals"],
     "allowed_universe": ["SPMO", "AVUV", "..."]
@@ -158,6 +160,28 @@ def check_portfolio(portfolio, constraints, classes, factors):
                     f"need {min_factors}"
                 )
 
+    # --- no pure single-factor equity sleeve ---
+    # Union-based diversity misses this: SPMO+XSMO+IDMO spans {momentum, size}
+    # yet is a pure momentum approach. Fail when EVERY equity holding carries
+    # the banned factor.
+    banned = constraints.get("no_pure_factor", [])
+    if banned:
+        if not factors:
+            skipped.append("no_pure_factor (no 'factors' map provided)")
+        else:
+            equity_tickers = [
+                t for t in tickers
+                if not classes or is_equity_class(classes.get(t))
+            ]
+            for factor in banned:
+                if equity_tickers and all(
+                    factor in factors.get(t, []) for t in equity_tickers
+                ):
+                    failures.append(
+                        f"pure {factor} equity sleeve: every equity holding "
+                        f"({', '.join(equity_tickers)}) carries {factor}"
+                    )
+
     return failures, skipped
 
 
@@ -165,10 +189,17 @@ def main():
     parser = argparse.ArgumentParser(
         description="Validate portfolios against construction constraints."
     )
-    parser.add_argument("config", help="path to portfolios JSON")
+    parser.add_argument("config", nargs="?", help="path to portfolios JSON")
+    parser.add_argument("--selftest", action="store_true",
+                        help="run the built-in check and exit")
     parser.add_argument("--quiet", action="store_true",
                         help="only print portfolios that fail")
     args = parser.parse_args()
+    if args.selftest:
+        selftest()
+        return
+    if not args.config:
+        parser.error("config is required unless --selftest")
 
     try:
         with open(args.config) as fh:
@@ -225,6 +256,20 @@ def main():
     print(f"{n_pass}/{len(portfolios)} portfolios passed {scope}.")
 
     sys.exit(0 if n_pass == len(portfolios) else 1)
+
+
+def selftest():
+    classes = {"SPMO": "us_large", "XSMO": "us_small", "IDMO": "intl",
+               "AVLV": "us_large", "EDV": "treasury"}
+    factors = {"SPMO": ["momentum"], "XSMO": ["size", "momentum"],
+               "IDMO": ["momentum"], "AVLV": ["value", "profitability"]}
+    c = {"no_pure_factor": ["momentum", "value"], "min_distinct_factors": 2}
+    pure = {"holdings": {"SPMO": 30, "XSMO": 30, "IDMO": 20, "EDV": 20}}
+    mixed = {"holdings": {"AVLV": 30, "XSMO": 30, "IDMO": 20, "EDV": 20}}
+    fails, _ = check_portfolio(pure, c, classes, factors)
+    assert any("pure momentum" in f for f in fails), fails
+    assert check_portfolio(mixed, c, classes, factors) == ([], [])
+    print("selftest ok")
 
 
 if __name__ == "__main__":

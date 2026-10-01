@@ -39,6 +39,7 @@ Most conversations start in Mode A and then live in Mode B for many turns — th
 
 | Theory | Core mechanism |
 |---|---|
+| Modern portfolio theory | Mean-variance efficient frontier; baseline and cross-check |
 | Fama-French factors | Size, value, momentum, profitability, investment premia |
 | Shannon's Demon | Rebalancing bonus from low-correlation, high-volatility sleeves |
 | Taleb barbell | Extreme safety + extreme convexity, nothing in the middle |
@@ -52,7 +53,7 @@ SKILL.md                      # The skill itself: workflow, output format, core 
 scripts/check_constraints.py  # Mechanical constraint validator
 references/
   metrics.md                  # Martin, Sterling, Treynor, Omega — formulas and honest presentation
-  theories.md                 # Factor / Shannon / barbell / risk parity, and what each depends on
+  theories.md                 # MPT / factor / Shannon / barbell / risk parity, and what each depends on
   regimes.md                  # 30-year regime set and long-history proxies for short-lived ETFs
   pmpt.md                     # Downside deviation, Sortino, UPR, CVaR, robust optimizers
   scenarios.md                # Forward scenario framework and probability weighting
@@ -76,7 +77,7 @@ python scripts/check_constraints.py portfolios.json
 python scripts/check_constraints.py portfolios.json --quiet   # failures only
 ```
 
-Checks ticker count, weight sum, weight granularity, one-per-class rules, factor diversity, and benchmark exclusion. Prints a per-portfolio pass/fail table. Input schema is documented in the script's docstring. Requires Python 3 only — no dependencies.
+Checks ticker count, weight sum, weight granularity, one-per-class rules, factor diversity, pure single-factor equity sleeves, and benchmark exclusion. Prints a per-portfolio pass/fail table. Input schema is documented in the script's docstring. Requires Python 3 only — no dependencies.
 
 Example input:
 
@@ -145,6 +146,7 @@ MIT
 
 | 理論 | 核心機制 |
 |---|---|
+| 現代投資組合理論 | 均值－變異數效率前緣，作為基準與交叉驗證 |
 | Fama-French 因子 | 規模、價值、動能、獲利能力、投資傾向的溢酬 |
 | 夏農的惡魔 | 由低相關、高波動部位產生的再平衡紅利 |
 | 塔雷伯槓鈴 | 極度安全 + 極度凸性，中間什麼都不放 |
@@ -158,7 +160,7 @@ SKILL.md                      # skill 本體：工作流程、輸出格式、核
 scripts/check_constraints.py  # 機械式限制條件驗證器
 references/
   metrics.md                  # Martin、Sterling、Treynor、Omega——公式與誠實呈現方式
-  theories.md                 # 因子／夏農／槓鈴／風險平價，以及各自的成立前提
+  theories.md                 # MPT／因子／夏農／槓鈴／風險平價，以及各自的成立前提
   regimes.md                  # 30 年情境集合，以及短命 ETF 的長歷史代理標的
   pmpt.md                     # 下檔離差、Sortino、UPR、CVaR、穩健最佳化
   scenarios.md                # 前瞻情境框架與機率加權
@@ -182,7 +184,7 @@ python scripts/check_constraints.py portfolios.json
 python scripts/check_constraints.py portfolios.json --quiet   # 只顯示失敗項
 ```
 
-檢查標的數量、權重加總、權重級距、每類資產只能選一檔的規則、因子分散度，以及基準指數排除。輸出每個組合的通過／失敗表格。輸入格式定義在腳本的 docstring 中。只需要 Python 3，無任何相依套件。
+檢查標的數量、權重加總、權重級距、每類資產只能選一檔的規則、因子分散度、股票部位不得為單一純因子，以及基準指數排除。輸出每個組合的通過／失敗表格。輸入格式定義在腳本的 docstring 中。只需要 Python 3，無任何相依套件。
 
 輸入範例：
 
