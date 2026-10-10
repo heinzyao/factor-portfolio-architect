@@ -140,16 +140,16 @@ def check_portfolio(portfolio, constraints, classes, factors):
                         f"expected exactly 1 '{required_class}' holding, found {n}"
                     )
 
+    equity_tickers = [
+        t for t in tickers if not classes or is_equity_class(classes.get(t))
+    ]
+
     # --- factor diversity across equity holdings ---
     min_factors = constraints.get("min_distinct_factors")
     if min_factors:
         if not factors:
             skipped.append("min_distinct_factors (no 'factors' map provided)")
         else:
-            equity_tickers = [
-                t for t in tickers
-                if not classes or is_equity_class(classes.get(t))
-            ]
             distinct = set()
             for t in equity_tickers:
                 distinct.update(factors.get(t, []))
@@ -169,10 +169,6 @@ def check_portfolio(portfolio, constraints, classes, factors):
         if not factors:
             skipped.append("no_pure_factor (no 'factors' map provided)")
         else:
-            equity_tickers = [
-                t for t in tickers
-                if not classes or is_equity_class(classes.get(t))
-            ]
             for factor in banned:
                 if equity_tickers and all(
                     factor in factors.get(t, []) for t in equity_tickers
