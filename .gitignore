@@ -1,2 +1,6 @@
 .DS_Store
 __pycache__/
+
+# 個人回測腳本（含個人投組，只留本機）
+scripts/backtest_proxy.py
+scripts/fetch_proxy_data.py
